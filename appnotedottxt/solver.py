@@ -20,6 +20,7 @@ file_out = open(path_out, "wb")
 
 bytestring = file_in.read().hex()
 
+# gather positions of valid central directory headers
 positions = []
 start = 0
 while (cur := bytestring.find(EOCD, start)) != -1:
@@ -29,6 +30,7 @@ while (cur := bytestring.find(EOCD, start)) != -1:
 
     start = cur + 1
 
+# collect valid headers and flag letters
 flag_letters = dict()
 local_headers = []
 central_headers = []
@@ -56,6 +58,7 @@ for pos in positions:
         data = bytes.fromhex(local[68:74]).decode("ascii")
         flag_letters[int(data[0:2])] = data[2]
 
+# build valid zip archive
 num = struct.pack("<H", (len(local_headers))).hex()
 end = (
     "504b050600000000"

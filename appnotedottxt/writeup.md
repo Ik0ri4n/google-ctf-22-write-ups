@@ -19,7 +19,7 @@ Analyzing the archive with `strings` shows that the archive contains entries for
 **The flagXX file versions contain the letters a-z, {, C, T, F, 0, 1, 3, 7, } and \_**.
 The file hi.txt however contains the text:
 
-> There's more to it than meets the eye...
+> Find the needle in the haystack...
 
 Analyzing the file with `binwalk` confirms that the archive entries for all of these files exist.
 However the zip format is obviously manipulated in such a way that they are not extracted.
@@ -65,5 +65,5 @@ Analyzing dump.zip with a hex editor reveals that it uses the following structur
 While Local File Headers are usually not allowed in the Central Directory Structure the archive is still valid because each Central Directory Entry simply declares the rest of the file up to last End Of Central Directory Record as its file comment.
 Thus only the first file, hello.txt, is extractable.
 **The remaining End Of Central Directory Records reference the correct Central Directory Header for the remaining files** though using the offset to the Central Directory Structure.
-It is possible and relatively quick to simply jump to all those positions and read the flag characters from the File Data directly before that position.
-Since I already experimented with code manipulating zip archives while solving the challenge I will also provide a [script](./solver.py) that copies all the desired headers to a valid zip file and outputs **the flag `CTF{p0s7m0d3rn_z1p}`**.
+It is possible (and relatively quick) to simply jump to all those positions and read the flag characters from the File Data directly before that position.
+Since I already experimented with code manipulating zip archives while solving the challenge I also provide a [script](./solver.py) that copies all the desired headers to a valid zip file and outputs **the flag `CTF{p0s7m0d3rn_z1p}`**.
