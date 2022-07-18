@@ -21,6 +21,8 @@ As it only uses local code, the password for the page (also the flag) is hidden 
 It is our task to work through the obfuscation and find it.
 I highly recommend to use an editor like VS Code and the debugger for solving this challenge.
 
+![JS safe page](./jssafe_page.png "js safe page")
+
 The HTML page contains a simple page structure with a login field (in l. 375-382), some javascript code (in l. 243-273 and l. 384-442) and a lot of irrelevant HTML and CSS for an animated background.
 
 ![Code snippet of lines 243 to 273](./first_script_block.png "first script block")
@@ -38,10 +40,11 @@ Additionally it contains a weirdly colored comment (I will return to that later)
 I used the debugger to quickly check assumptions and test code.
 Opening it on the challenge page freezes the tab but can usually be circumvented by stopping the page (most browsers will offer you to do this after a few seconds).
 
-Analyzing the `code` variable one may note that it is a template literal with hex-encoded characters, like `\x60` - another backtick.
-Evaluating the template literal with `console.log(code)` produces another template literal that contains string interpolation and appends the result of `checksum(code)` to the string.
-The first template literal is evaluated by the string concatenation in `setTimeout("x = Function('flag', " + code + ")")` and the second by the `Function` constructor.
-Evaluating `checksum(code)` produces a string that contains code manipulating a variable `i`.
+Analyzing the `code` variable one may note that it is a [template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) with hex-encoded characters, like `\x60` - another backtick.
+When you evaluate the first template literal with `console.log(code)` it produces another template literal.
+This literal uses [string interpolation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#string_interpolation) and appends the result of `checksum(code)` to the string.
+In the script block the first template literal is evaluated by the string concatenation in `setTimeout("x = Function('flag', " + code + ")")` and the second by the `Function` constructor.
+Evaluating `checksum(code)` produces a string that contains javascript code manipulating the variable `i`.
 At this pint I had the idea to **look at the produced code for `x` via `console.log(x+'')`** [^1]:
 
 ```js
@@ -88,6 +91,9 @@ We still get "Access Denied" upon login.
 
 Next I returned to the weird comments on lines 406-410.
 (Another thing that may hint you to those lines is that modifying the length of the page may give you "Access Granted" with just the first flag part and that those comments _discuss_ a length check.)
+
+![Code snippet of lines 406 to 410](./weird_comments.png "weird comments")
+
 The code in those line comments is wrapped with a LINE SEPARATOR and is thus **evaluated like code on the next line**.
 To see what it does I again printed the code passed to `setTimeout()` with `console.log(checksum(' ' + checksum))`[^1]:
 
@@ -118,6 +124,7 @@ So we now have the **complete flag `CTF{W0w_5ucH_N1c3_d3bU9_sK1lLz_Br0w53R_Bu9s_
 ## Conclusion
 
 The challenge obviously shows that, however deep it is hidden in code obfuscation, a password is never safe if it is checked browser-locally.
+In general, sensitive information should only be included in web pages for users that are supposed to get access to them.
 
 ## Interesting additions
 
