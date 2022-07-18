@@ -1,16 +1,18 @@
 # JS SAFE 4.0 - Google CTF 2022
 
-- Category: reversing
-- Points: 152pt
-- Date: Fri, 01 July 2022, 18:00 UTC - Sun, 03 July 2022, 18:00 UTC
-- Attachments: [js_safe_4.html](./js_safe_4.html) ([zip](./attachments.zip))
-- Write-Up author: Dominik Waibel
+- **Category:** reversing
+- **Points:** 152pt
+- **Date:** Fri, 01 July 2022, 18:00 UTC - Sun, 03 July 2022, 18:00 UTC
+- **Attachments:** [js_safe_4.html](./js_safe_4.html) ([zip](./attachments.zip))
+- **Write-Up author:** Dominik Waibel
+- **Description:**
 
->You stumbled upon someone's "JS Safe" on the web. It's a simple HTML file that can store secrets in the browser's localStorage. This means that you won't be able to extract any secret from it (the secrets are on the computer of the owner), but it looks like it was hand-crafted to work only with the password of the owner...
+> You stumbled upon someone's "JS Safe" on the web. It's a simple HTML file that can store secrets in the browser's localStorage. This means that you won't be able to extract any secret from it (the secrets are on the computer of the owner), but it looks like it was hand-crafted to work only with the password of the owner...
 
 ## TL;DR
 
-The challenge page contains obfuscated password check code which we can analyze using the debugger and code editors.
+The challenge page is a browser local secret safe which contains obfuscated password check code.
+We can analyze this code using the debugger and code editors to extract the password (also the flag).
 
 ## First observations
 
@@ -25,7 +27,7 @@ The HTML page contains a simple page structure with a login field (in l. 375-382
 
 The first script block contains the function `openSafe()` which checks the password against the flag format and validates the text inside of the brackets with the function `x()`.
 This second function is defined from a `code` string with a call to `setTimeout()`.
-Trying to reconstruct the flag from the code snippet does only result in bullshit like `s__3Wb15l_L_3uU19d0HNzcKw_c` though.
+Trying to reconstruct the flag from the code snippet does only result in nonsense like `s__3Wb15l_L_3uU19d0HNzcKw_c` though.
 (If you get different results, note that `i` is 100 after the `for`-loop and that the assignment at line 250 does not modify `i` as it has a ZERO WIDTH JOINER appended.)
 
 The second script block contains some supposed utility functions that appear legitimate on the first glance.
@@ -40,7 +42,7 @@ Analyzing the `code` variable one may note that it is a template literal with he
 Evaluating the template literal with `console.log(code)` produces another template literal that contains string interpolation and appends the result of `checksum(code)` to the string.
 The first template literal is evaluated by the string concatenation in `setTimeout("x = Function('flag', " + code + ")")` and the second by the `Function` constructor.
 Evaluating `checksum(code)` produces a string that contains code manipulating a variable `i`.
-At this pint I had the idea to **look at the produced code for `x` via `console.log(x+'')`** ¹:
+At this pint I had the idea to **look at the produced code for `x` via `console.log(x+'')`** [^1]:
 
 ```js
 function anonymous(flag) {
@@ -87,7 +89,7 @@ We still get "Access Denied" upon login.
 Next I returned to the weird comments on lines 406-410.
 (Another thing that may hint you to those lines is that modifying the length of the page may give you "Access Granted" with just the first flag part and that those comments _discuss_ a length check.)
 The code in those line comments is wrapped with a LINE SEPARATOR and is thus **evaluated like code on the next line**.
-To see what it does I again printed the code passed to `setTimeout()` with `console.log(checksum(' ' + checksum))`¹:
+To see what it does I again printed the code passed to `setTimeout()` with `console.log(checksum(' ' + checksum))`[^1]:
 
 ```js
 function anonymous() {
@@ -111,7 +113,11 @@ function anonymous() {
 ```
 
 This function **redefines the class setter of `document.body`** and checks the end of the flag.
-So we now have the complete flag `CTF{W0w_5ucH_N1c3_d3bU9_sK1lLz_Br0w53R_Bu9s_C4Nt_s70p_Y0u}`.
+So we now have the **complete flag `CTF{W0w_5ucH_N1c3_d3bU9_sK1lLz_Br0w53R_Bu9s_C4Nt_s70p_Y0u}`**.
+
+## Conclusion
+
+The challenge obviously shows that, however deep it is hidden in code obfuscation, a password is never safe if it is checked browser-locally.
 
 ## Interesting additions
 
@@ -125,6 +131,4 @@ As `this.x` is undefined in this method and a comparison to `undefined` is alway
 Since the calls `console.log()` are evaluated when opening the debugger the call in line 441 causes the page freeze.
 You can comment it out to avoid the freeze but should then remove two characters somewhere to preserve the core functionality of the page.
 
-## Footnotes
-
-1. I reformatted the code, shortened irrelevant strings and removed random comments.
+[^1]: I reformatted the code, shortened irrelevant strings and removed random comments.
