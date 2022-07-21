@@ -1,4 +1,4 @@
-# JS SAFE 4.0 - Google CTF 2022
+# APPNOTE.txt - Google CTF 2022
 
 - **Category:** misc
 - **Points:** 50pt
